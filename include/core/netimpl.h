@@ -170,10 +170,30 @@ namespace liboai {
 			};
 
 			struct File final {
+				File(const File& other) {
+					this->filepath = other.filepath;
+					this->overrided_filename = other.overrided_filename;
+				}
+				File(File&& old) noexcept {
+					this->filepath = std::move(old.filepath);
+					this->overrided_filename = std::move(old.overrided_filename);
+				}
 				explicit File(std::string p_filepath, const std::string& p_overrided_filename = {}) : filepath(std::move(p_filepath)), overrided_filename(p_overrided_filename) {}
 
-				const std::string filepath;
-				const std::string overrided_filename;
+				File& operator=(const File& other) {
+					this->filepath = other.filepath;
+					this->overrided_filename = other.overrided_filename;
+					return *this;
+				}
+
+				File& operator=(File&& old) noexcept {
+					this->filepath = std::move(old.filepath);
+					this->overrided_filename = std::move(old.overrided_filename);
+					return *this;
+				}
+
+				std::string filepath;
+				std::string overrided_filename;
 
 				bool hasOverridedFilename() const noexcept {
 					return !overrided_filename.empty();
@@ -183,6 +203,12 @@ namespace liboai {
 			class Files final {
 				public:
 					Files() = default;
+					Files(const Files& other) {
+						this->files = other.files;
+					}
+					Files(Files&& old) noexcept {
+						this->files = std::move(old.files);
+					}
 					Files(const File& p_file) : files{ p_file } {};
 					Files(const std::initializer_list<File>& p_files) : files{ p_files } {};
 					Files(const std::initializer_list<std::string>& p_filepaths) {
@@ -191,6 +217,15 @@ namespace liboai {
 						}
 					};
 					~Files() noexcept = default;
+
+					Files& operator=(const Files& other) {
+						this->files = other.files;
+						return *this;
+					}
+					Files& operator=(Files&& old) noexcept {
+						this->files = std::move(old.files);
+						return *this;
+					}
 
 					using iterator = std::vector<File>::iterator;
 					using const_iterator = std::vector<File>::const_iterator;
@@ -228,6 +263,8 @@ namespace liboai {
 			class Body final : public StringHolder<Body> {
 				public:
 					Body() = default;
+					Body(const Body& other) { this->str_ = other.str_; }
+					Body(Body&& old) noexcept { this->str_ = std::move(old.str_); }
 					Body(std::string body) : StringHolder<Body>(std::move(body)) {}
 					Body(std::string_view body) : StringHolder<Body>(body) {}
 					Body(const char* body) : StringHolder<Body>(body) {}
@@ -247,12 +284,16 @@ namespace liboai {
 						is.read(buffer.data(), length);
 						str_ = std::move(buffer);
 					}
-					Body(const Body& other) = default;
-					Body(Body&& old) noexcept = default;
 					~Body() override = default;
 
-					Body& operator=(Body&& old) noexcept = default;
-					Body& operator=(const Body& other) = default;
+					Body& operator=(Body&& old) noexcept {
+						this->str_ = std::move(old.str_);
+						return *this;
+					}
+					Body& operator=(const Body& other) {
+						this->str_ = other.str_;
+						return *this;
+					}
 			};
 
 			struct Buffer final {
@@ -274,11 +315,54 @@ namespace liboai {
 			};
 
 			struct Part final {
+				Part(const Part& other) {
+					this->name = other.name;
+					this->value = other.value;
+					this->content_type = other.content_type;
+					this->data = other.data;
+					this->datalen = other.datalen;
+					this->is_file = other.is_file;
+					this->is_buffer = other.is_buffer;
+					this->files = other.files;
+				}
+				Part(Part&& old) noexcept {
+					this->name = std::move(old.name);
+					this->value = std::move(old.value);
+					this->content_type = std::move(old.content_type);
+					this->data = old.data;
+					this->datalen = old.datalen;
+					this->is_file = old.is_file;
+					this->is_buffer = old.is_buffer;
+					this->files = std::move(old.files);
+				}
 				Part(const std::string& p_name, const std::string& p_value, const std::string& p_content_type = {}) : name{ p_name }, value{ p_value }, content_type{ p_content_type }, is_file{ false }, is_buffer{ false } {}
 				Part(const std::string& p_name, const std::int32_t& p_value, const std::string& p_content_type = {}) : name{ p_name }, value{ std::to_string(p_value) }, content_type{ p_content_type }, is_file{ false }, is_buffer{ false } {}
 				Part(const std::string& p_name, const Files& p_files, const std::string& p_content_type = {}) : name{ p_name }, value{}, content_type{ p_content_type }, is_file{ true }, is_buffer{ false }, files{ p_files } {}
 				Part(const std::string& p_name, Files&& p_files, const std::string& p_content_type = {}) : name{ p_name }, value{}, content_type{ p_content_type }, is_file{ true }, is_buffer{ false }, files{ std::move(p_files) } {}
 				Part(const std::string& p_name, const Buffer& buffer, const std::string& p_content_type = {}) : name{ p_name }, value{ buffer.filename.string() }, content_type{ p_content_type }, data{ buffer.data }, datalen{ buffer.datalen }, is_file{ false }, is_buffer{ true } {}
+
+				Part& operator=(const Part& other) {
+					this->name = other.name;
+					this->value = other.value;
+					this->content_type = other.content_type;
+					this->data = other.data;
+					this->datalen = other.datalen;
+					this->is_file = other.is_file;
+					this->is_buffer = other.is_buffer;
+					this->files = other.files;
+					return *this;
+				}
+				Part& operator=(Part&& old) noexcept {
+					this->name = std::move(old.name);
+					this->value = std::move(old.value);
+					this->content_type = std::move(old.content_type);
+					this->data = old.data;
+					this->datalen = old.datalen;
+					this->is_file = old.is_file;
+					this->is_buffer = old.is_buffer;
+					this->files = std::move(old.files);
+					return *this;
+				}
 
 				std::string name;
 				std::string value;
@@ -293,6 +377,23 @@ namespace liboai {
 
 			class Multipart final {
 				public:
+					Multipart() = default;
+					Multipart(const Multipart& other) {
+						this->parts = other.parts;
+					}
+					Multipart(Multipart&& old) noexcept {
+						this->parts = std::move(old.parts);
+					}
+
+					Multipart& operator=(const Multipart& other) {
+						this->parts = other.parts;
+						return *this;
+					}
+					Multipart& operator=(Multipart&& old) noexcept {
+						this->parts = std::move(old.parts);
+						return *this;
+					}
+
 					Multipart(const std::initializer_list<Part>& parts);
 
 					std::vector<Part> parts;
@@ -308,7 +409,27 @@ namespace liboai {
 			using Header = std::map<std::string, std::string, CaseInsensitiveCompare>;
 
 			struct Parameter final {
+				Parameter() = default;
+				Parameter(const Parameter& other) {
+					this->key = other.key;
+					this->value = other.value;
+				}
+				Parameter(Parameter&& old) noexcept {
+					this->key = std::move(old.key);
+					this->value = std::move(old.value);
+				}
 				Parameter(std::string p_key, std::string p_value) : key{ std::move(p_key) }, value{ std::move(p_value) } {}
+
+				Parameter& operator=(const Parameter& other) {
+					this->key = other.key;
+					this->value = other.value;
+					return *this;
+				}
+				Parameter& operator=(Parameter&& old) noexcept {
+					this->key = std::move(old.key);
+					this->value = std::move(old.value);
+					return *this;
+				}
 
 				std::string key;
 				std::string value;
@@ -317,7 +438,22 @@ namespace liboai {
 			class Parameters final {
 				public:
 					Parameters() = default;
+					Parameters(const Parameters& other) {
+						this->parameters_ = other.parameters_;
+					}
+					Parameters(Parameters&& old) noexcept {
+						this->parameters_ = std::move(old.parameters_);
+					}
 					Parameters(const std::initializer_list<Parameter>& parameters);
+
+					Parameters& operator=(const Parameters& other) {
+						this->parameters_ = other.parameters_;
+						return *this;
+					}
+					Parameters& operator=(Parameters&& old) noexcept {
+						this->parameters_ = std::move(old.parameters_);
+						return *this;
+					}
 
 					void Add(const std::initializer_list<Parameter>& parameters);
 					void Add(const Parameter& parameter);
@@ -342,8 +478,23 @@ namespace liboai {
 			class Proxies final {
 				public:
 					Proxies() = default;
+					Proxies(const Proxies& other) {
+						this->hosts_ = other.hosts_;
+					}
+					Proxies(Proxies&& old) noexcept {
+						this->hosts_ = std::move(old.hosts_);
+					}
 					Proxies(const std::initializer_list<std::pair<const std::string, std::string>>& hosts);
 					Proxies(const std::map<std::string, std::string>& hosts);
+
+					Proxies& operator=(const Proxies& other) {
+						this->hosts_ = other.hosts_;
+						return *this;
+					}
+					Proxies& operator=(Proxies&& old) noexcept {
+						this->hosts_ = std::move(old.hosts_);
+						return *this;
+					}
 
 					bool has(const std::string& protocol) const;
 					const std::string& operator[](const std::string& protocol);
@@ -361,13 +512,27 @@ namespace liboai {
 				
 				public:
 					EncodedAuthentication() = default;
+					EncodedAuthentication(const EncodedAuthentication& other) {
+						this->username = other.username;
+						this->password = other.password;
+					}
+					EncodedAuthentication(EncodedAuthentication&& old) noexcept {
+						this->username = std::move(old.username);
+						this->password = std::move(old.password);
+					}
 					EncodedAuthentication(const std::string& p_username, const std::string& p_password) : username(urlEncodeHelper(p_username)), password(urlEncodeHelper(p_password)) {}
-					EncodedAuthentication(const EncodedAuthentication& other) = default;
-					EncodedAuthentication(EncodedAuthentication&& old) noexcept = default;
 					virtual ~EncodedAuthentication() noexcept;
 
-					EncodedAuthentication& operator=(EncodedAuthentication&& old) noexcept = default;
-					EncodedAuthentication& operator=(const EncodedAuthentication& other) = default;
+					EncodedAuthentication& operator=(EncodedAuthentication&& old) noexcept {
+						this->username = std::move(old.username);
+						this->password = std::move(old.password);
+						return *this;
+					}
+					EncodedAuthentication& operator=(const EncodedAuthentication& other) {
+						this->username = other.username;
+						this->password = other.password;
+						return *this;
+					}
 
 					[[nodiscard]] const std::string& GetUsername() const;
 					[[nodiscard]] const std::string& GetPassword() const;
@@ -382,8 +547,23 @@ namespace liboai {
 			class ProxyAuthentication final {
 				public:
 					ProxyAuthentication() = default;
+					ProxyAuthentication(const ProxyAuthentication& other) {
+						this->proxyAuth_ = other.proxyAuth_;
+					}
+					ProxyAuthentication(ProxyAuthentication&& old) noexcept {
+						this->proxyAuth_ = std::move(old.proxyAuth_);
+					}
 					ProxyAuthentication(const std::initializer_list<std::pair<const std::string, EncodedAuthentication>>& auths) : proxyAuth_{auths} {}
 					explicit ProxyAuthentication(const std::map<std::string, EncodedAuthentication>& auths) : proxyAuth_{auths} {}
+
+					ProxyAuthentication& operator=(const ProxyAuthentication& other) {
+						this->proxyAuth_ = other.proxyAuth_;
+						return *this;
+					}
+					ProxyAuthentication& operator=(ProxyAuthentication&& old) noexcept {
+						this->proxyAuth_ = std::move(old.proxyAuth_);
+						return *this;
+					}
 
 					[[nodiscard]] bool has(const std::string& protocol) const;
 					const char* GetUsername(const std::string& protocol);
@@ -396,10 +576,23 @@ namespace liboai {
 			class WriteCallback final {
 				public:
 					WriteCallback() = default;
+					WriteCallback(const WriteCallback& other) : userdata(other.userdata), callback(other.callback) {}
+					WriteCallback(WriteCallback&& old) noexcept : userdata(std::move(old.userdata)), callback(std::move(old.callback)) {}
 					WriteCallback(std::function<bool(std::string data, intptr_t userdata)> p_callback, intptr_t p_userdata = 0)
 						: userdata(p_userdata), callback(std::move(p_callback)) {}
 
-					bool operator()(std::string data) const {
+					WriteCallback& operator=(const WriteCallback& other) {
+						this->callback = other.callback;
+						this->userdata = other.userdata;
+						return *this;
+					}
+					WriteCallback& operator=(WriteCallback&& old) noexcept {
+						this->callback = std::move(old.callback);
+						this->userdata = std::move(old.userdata);
+						return *this;
+					}
+
+					[[nodiscard]] bool operator()(std::string data) const {
 						return callback(std::move(data), userdata);
 					}
 
@@ -424,7 +617,7 @@ namespace liboai {
 		*/
 		class Session final : private CurlHolder {
 			public:
-				Session() noexcept = default;
+				Session() = default;
 				~Session() override;
 
 				liboai::Response Get();
@@ -486,6 +679,8 @@ namespace liboai {
 
 				void SetOption(const components::WriteCallback& write);
 				void SetWriteCallback(const components::WriteCallback& write);
+				void SetOption(components::WriteCallback&& write);
+				void SetWriteCallback(components::WriteCallback&& write);
 
 				long status_code = 0; double elapsed = 0.0;
 				std::string status_line{}, content{}, url_str{}, reason{};
